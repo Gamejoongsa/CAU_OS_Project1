@@ -60,7 +60,7 @@ void control_cnt(void* num){
                         if(received_msg.current_payload != 0){
                                 int robot_row = received_msg.row;
                                 int robot_col = received_msg.col;
-                                printf("Thread %d: %c\n", i, dest);
+                                //printf("Thread %d: %c\n", i, dest);
                                 switch(dest){
                                         case 'A':
                                                 if(robot_col == COL_A && can_robot_go(robots_num, robot_row-1, robot_col, target, dest, preempted, 1)){
@@ -206,7 +206,7 @@ void control_cnt(void* num){
                         boxes_from_central_control_node[i].dirtyBit = 1;
                         free(send_msg);
                 }
-                if(completed == robots_num) break;
+                if(completed == robots_num) break; // escapingh points
                 //increase step, and unblock all threads
                 increase_step();
                 unblock_threads();
@@ -224,7 +224,7 @@ void control_thread(void* aux){
                 int target = robots[idx].required_payload / 10;
                 char dest = (robots[idx].required_payload % 10) + 'A';
                 int isTerminated = 0;
-                printf("thread %s working\n", thread_name());
+                //printf("thread %s working\n", thread_name());
 
                 // receive message
                 if(boxes_from_central_control_node[idx].dirtyBit){
@@ -260,7 +260,7 @@ void control_thread(void* aux){
                         robots[idx].current_payload = robots[idx].required_payload / 10;
                 }
                 else if(map_draw_default[robots[idx].row][robots[idx].col] == dest && robots[idx].current_payload == target){
-                        printf("Thread %s has reached his own goal!\n", thread_name());
+                        //printf("Thread %s has reached his own goal!\n", thread_name());
                         robots[idx].required_payload = -1; // It means complete
                         isTerminated = 1;
                 }
@@ -273,7 +273,7 @@ void control_thread(void* aux){
                 msg->current_payload = robots[idx].current_payload;
                 boxes_from_robots[idx].msg = *msg;
                 boxes_from_robots[idx].dirtyBit = 1;
-                printf("thread %s message sent!\n", thread_name());
+                //printf("thread %s message sent!\n", thread_name());
                 free(msg);
 
                 if(isTerminated) break; // if mission completed, break the loop to exit
@@ -316,7 +316,7 @@ void run_automated_warehouse(char **argv)
         for(int i=0;i<robots_num;i++) list_init(&robot_actions[i]);
 
         // example of create thread
-        tid_t* threads = malloc(sizeof(tid_t) * robots_num);
+        tid_t* threads = malloc(sizeof(tid_t) * (robots_num + 1));
         int* idxs = (int*)malloc(sizeof(int) * robots_num);
 
         for(int i=0;i<robots_num;i++){

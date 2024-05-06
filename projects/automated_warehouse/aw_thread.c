@@ -37,7 +37,7 @@ void unblock_threads(){
     old_level = intr_disable();
     while (!list_empty(&blocked_threads)){
         struct thread* blocked = list_entry(list_pop_front(&blocked_threads), struct thread, elem);
-        printf("unblock thread %s...\n", blocked->name);
+        //printf("unblock thread %s...\n", blocked->name);
         thread_unblock(blocked);
     }
     intr_set_level(old_level);
