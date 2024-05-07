@@ -221,7 +221,7 @@ void control_thread(void* aux){
                 //printf("thread %s working\n", thread_name());
 
                 // receive message
-                if(boxes_from_central_control_node[idx].dirtyBit){
+                if(boxes_from_central_control_node[idx].dirtyBit == 1){
                         received_msg = boxes_from_central_control_node[idx].msg;
                         boxes_from_central_control_node[idx].dirtyBit = 0;
                 
