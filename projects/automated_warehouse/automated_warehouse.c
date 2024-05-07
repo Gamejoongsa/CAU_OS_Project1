@@ -19,7 +19,7 @@ void control_cnt(void* num){
         int preempted[robots_num][2];
         while(1){
                 //wait until all threads being blocked
-                while(blocked != robots_num){
+                while(blocked != (robots_num - completed)){
                         thread_yield();
                         blocked = 0;
                         for(int i=0;i<robots_num;i++)
@@ -31,6 +31,7 @@ void control_cnt(void* num){
                 for(int i=0;i<robots_num;i++){
                         // receive message
                         struct message received_msg = boxes_from_robots[i].msg;
+                        boxes_from_robots[i].dirtyBit = 0;
 
                         // if the required payload is set to -1, then the robot is completed.
                         if(received_msg.required_payload == -1){
@@ -223,40 +224,40 @@ void control_thread(void* aux){
                 if(boxes_from_central_control_node[idx].dirtyBit){
                         received_msg = boxes_from_central_control_node[idx].msg;
                         boxes_from_central_control_node[idx].dirtyBit = 0;
-                }
                 
-                // do action
-                #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
-                switch(received_msg.cmd){
-                        case WAIT:
-                                break;
-                        case UP:
-                                robots[idx].row--;
-                                break;
-                        case DOWN:
-                                robots[idx].row++;
-                                break;
-                        case LEFT:
-                                robots[idx].col--;
-                                break;
-                        case RIGHT:
-                                robots[idx].col++;
-                                break;
-                        default:
-                                //initial or no message -> break
-                                break;
-                }
+                        // do action
+                        #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+                        switch(received_msg.cmd){
+                                case WAIT:
+                                        break;
+                                case UP:
+                                        robots[idx].row--;
+                                        break;
+                                case DOWN:
+                                        robots[idx].row++;
+                                        break;
+                                case LEFT:
+                                        robots[idx].col--;
+                                        break;
+                                case RIGHT:
+                                        robots[idx].col++;
+                                        break;
+                                default:
+                                        //initial or no message -> break
+                                        break;
+                        }
 
-                // printf("%s / %d: (%d %d)\n", thread_name(), received_msg.cmd, robots[idx].row, robots[idx].col);
+                        // printf("%s / %d: (%d %d)\n", thread_name(), received_msg.cmd, robots[idx].row, robots[idx].col);
 
-                // update status
-                if(map_draw_default[robots[idx].row][robots[idx].col] == target + '0'){
-                        robots[idx].current_payload = robots[idx].required_payload / 10;
-                }
-                else if(map_draw_default[robots[idx].row][robots[idx].col] == dest && robots[idx].current_payload == target){
-                        //printf("Thread %s has reached his own goal!\n", thread_name());
-                        robots[idx].required_payload = -1; // It means complete
-                        isTerminated = 1;
+                        // update status
+                        if(map_draw_default[robots[idx].row][robots[idx].col] == target + '0'){
+                                robots[idx].current_payload = target;
+                        }
+                        else if(map_draw_default[robots[idx].row][robots[idx].col] == dest && robots[idx].current_payload == target){
+                                //printf("Thread %s has reached his own goal!\n", thread_name());
+                                robots[idx].required_payload = -1; // It means complete
+                                isTerminated = 1;
+                        }
                 }
 
                 // send message

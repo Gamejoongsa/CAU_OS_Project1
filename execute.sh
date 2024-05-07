@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd /home/leejaein/Documents/pintos/threads
+cd ~/Documents/pintos/threads
 make
 
 cd build
