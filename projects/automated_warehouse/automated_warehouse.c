@@ -15,6 +15,7 @@ struct list* robot_actions;
 void control_cnt(void* num){
         int blocked = 0;
         int completed = 0;
+        int working = 0;
         int robots_num = *((int *)num);
         int preempted[robots_num][2];
         while(1){
@@ -28,6 +29,7 @@ void control_cnt(void* num){
                 //control each robots
                 print_map(robots, robots_num);
                 completed = 0;
+                working = 0;
                 for(int i=0;i<robots_num;i++){
                         // receive message
                         struct message received_msg = boxes_from_robots[i].msg;
@@ -39,16 +41,17 @@ void control_cnt(void* num){
                                 continue;
                         }
 
+                        working++;
                         int target = (received_msg.required_payload / 10);
                         char dest = (received_msg.required_payload % 10) + 'A';
-                        enum action next_action = 0;
+                        enum action next_action = WAIT;
 
                         // if first move, load actions for moving to target payload
-                        if(received_msg.current_payload == 0 && list_empty(&robot_actions[i])){
+                        if(working < MAX_WORKING && received_msg.current_payload == 0 && list_empty(&robot_actions[i])){
                                 construct_loading_actions(&robot_actions[i], target);
                         }
 
-                        if(received_msg.current_payload != 0){
+                        if(working < MAX_WORKING && received_msg.current_payload != 0){
                                 int robot_row = received_msg.row;
                                 int robot_col = received_msg.col;
                                 //printf("Thread %d: %c\n", i, dest);
@@ -83,6 +86,11 @@ void control_cnt(void* num){
                                                         next_action = UP;
                                                         preempted[i][ROW] = robot_row-1;
                                                         preempted[i][COL] = robot_col;
+                                                }
+                                                else if(can_robot_go(robots_num, robot_row, robot_col-1, target, dest, preempted, 1)){
+                                                        next_action = LEFT;
+                                                        preempted[i][ROW] = robot_row;
+                                                        preempted[i][COL] = robot_col-1;
                                                 }
                                                 else{
                                                         next_action = WAIT;
@@ -119,6 +127,11 @@ void control_cnt(void* num){
                                                         preempted[i][ROW] = robot_row;
                                                         preempted[i][COL] = robot_col+1;
                                                 }
+                                                else if(can_robot_go(robots_num, robot_row-1, robot_col, target, dest, preempted, 1)){
+                                                        next_action = UP;
+                                                        preempted[i][ROW] = robot_row-1;
+                                                        preempted[i][COL] = robot_col;
+                                                }
                                                 else{
                                                         next_action = WAIT;
                                                 }
@@ -149,13 +162,18 @@ void control_cnt(void* num){
                                                         preempted[i][ROW] = robot_row-1;
                                                         preempted[i][COL] = robot_col;
                                                 }
+                                                else if(can_robot_go(robots_num, robot_row, robot_col-1, target, dest, preempted, 1)){
+                                                        next_action = LEFT;
+                                                        preempted[i][ROW] = robot_row;
+                                                        preempted[i][COL] = robot_col-1;
+                                                }
                                                 else{
                                                         next_action = WAIT;
                                                 }
                                                 break;
                                 }
                         }
-                        else if(!list_empty(&robot_actions[i])){
+                        else if(working < MAX_WORKING && !list_empty(&robot_actions[i])){
                                 // wait or move - if robot can move, move / else, wait
                                 int robot_row;
                                 int robot_col;
@@ -288,14 +306,15 @@ void run_automated_warehouse(char **argv)
         int robots_num = atoi(argv[1]);
         char* payload_list = argv[2];
         char* next_payload;
-        char name[robots_num][200];
+        char name[robots_num][80];
+        //printf("%s\n", name[0]);
 
         char* payload = strtok_r(payload_list, ":", &next_payload);
 
         // creating robots
         robots = malloc(sizeof(struct robot) * robots_num);
         for(int i=0;i<robots_num;i++){
-                snprintf(name[i], 200, "R%d", i+1);
+                snprintf(name[i], 80, "R%d", i+1);
                 payload[1] = payload[1] - 'A' + '0'; // convert alphabetic letter to integer start at 0
                 int required_payload = atoi(payload); // first digit: target goods, second digit: target location
                 setRobot(&robots[i], name[i], 5, 5, required_payload, 0);
@@ -312,7 +331,7 @@ void run_automated_warehouse(char **argv)
 
         // example of create thread
         tid_t* threads = malloc(sizeof(tid_t) * (robots_num + 1));
-        int* idxs = (int*)malloc(sizeof(int) * robots_num);
+        int idxs[robots_num];
 
         for(int i=0;i<robots_num;i++){
                 idxs[i] = i+1;

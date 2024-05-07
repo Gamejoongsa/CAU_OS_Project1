@@ -13,6 +13,8 @@
 #include "projects/automated_warehouse/aw_message.h"
 #include "projects/automated_warehouse/actions.h"
 
+#define MAX_WORKING 11
+
 void control_cnt(void* num);
 
 void control_thread(void* aux);
