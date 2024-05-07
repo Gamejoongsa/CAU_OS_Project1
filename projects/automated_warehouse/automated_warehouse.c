@@ -1,16 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
-#include "threads/init.h"
-#include "threads/malloc.h"
-#include "threads/synch.h"
-#include "threads/thread.h"
-
-#include "devices/timer.h"
-
-#include "projects/automated_warehouse/aw_manager.h"
-#include "projects/automated_warehouse/aw_message.h"
-#include "projects/automated_warehouse/actions.h"
+#include "projects/automated_warehouse/automated_warehouse.h"
 
 struct robot* robots;
 
@@ -18,10 +10,6 @@ struct message_box* boxes_from_central_control_node;
 struct message_box* boxes_from_robots;
 
 struct list* robot_actions;
-
-int abs(int a1, int a2){
-        return (a1-a2)>0 ? a1-a2 : a2-a1;
-}
 
 // control code for central control node thread
 void control_cnt(void* num){
@@ -43,6 +31,8 @@ void control_cnt(void* num){
                 for(int i=0;i<robots_num;i++){
                         // receive message
                         struct message received_msg = boxes_from_robots[i].msg;
+
+                        // if the required payload is set to -1, then the robot is completed.
                         if(received_msg.required_payload == -1){
                                 completed++;
                                 continue;
@@ -50,7 +40,7 @@ void control_cnt(void* num){
 
                         int target = (received_msg.required_payload / 10);
                         char dest = (received_msg.required_payload % 10) + 'A';
-                        int next_action = 0;
+                        enum action next_action = 0;
 
                         // if first move, load actions for moving to target payload
                         if(received_msg.current_payload == 0 && list_empty(&robot_actions[i])){
@@ -233,6 +223,7 @@ void control_thread(void* aux){
                 }
                 
                 // do action
+                #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
                 switch(received_msg.cmd){
                         case WAIT:
                                 break;

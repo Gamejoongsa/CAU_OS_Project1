@@ -30,7 +30,7 @@ struct robot_action* new(struct robot_action action);
 
 void construct_loading_actions(struct list* actions, int target);
 
-void initialize_actions();
+void initialize_actions(void);
 
 int can_robot_go(int num, int row, int col, int target, char dest, int preempted[][2], int ignore_start);
 
