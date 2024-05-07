@@ -66,7 +66,7 @@ void construct_loading_actions(struct list* actions, int target){
                         list_push_back(actions, &(new(left)->elem));
                         return;
                 default:
-                        printf("ERROR ERROR ERROR ERROR ERROR ERROR ERROR ERROR\n");
+                        printf("\nERROR ERROR ERROR ERROR - that payload %d is not exist. - ERROR ERROR ERROR ERROR\n\n", target);
                         return;
         }
 }
@@ -89,7 +89,7 @@ int can_robot_go(int num, int row, int col, int target, char dest, int preempted
             map_draw_default[row][col] != (ignore_start ? ' ' : 'S') &&
             map_draw_default[row][col] != (target + '0'))
         ) {
-                printf("(%d, %d): Error occured cause %c\n",row, col, map_draw_default[row][col]);
+                // printf("(%d, %d): Error occured cause %c\n",row, col, map_draw_default[row][col]);
                 return 0;
         }
         

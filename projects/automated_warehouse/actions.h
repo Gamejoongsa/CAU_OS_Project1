@@ -2,6 +2,8 @@
 #define _PROJECTS_PROJECT1_ACTIONS__
 
 #include <list.h>
+
+#include "threads/malloc.h"
 #include "projects/automated_warehouse/aw_manager.h"
 
 #define ROW 0
