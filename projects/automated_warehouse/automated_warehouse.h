@@ -7,6 +7,7 @@
 #include "threads/thread.h"
 
 #include "devices/timer.h"
+#include "devices/shutdown.h"
 
 #include "projects/automated_warehouse/aw_manager.h"
 #include "projects/automated_warehouse/aw_message.h"

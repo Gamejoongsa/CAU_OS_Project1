@@ -202,8 +202,11 @@ void control_cnt(void* num){
                 unblock_threads();
                 blocked = 0;
         }
-        thread_exit();
-        return;
+        // When all works done, shot down the system.
+
+        //thread_exit();
+        shutdown_power_off();
+        NOT_REACHED() ;
 }
 
 // control code for robot thread
